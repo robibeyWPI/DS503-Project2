@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Problem2">
+    <output-path>$PROJECT_DIR$/out/artifacts/Problem2</output-path>
+    <root id="archive" name="Problem2.jar">
+      <element id="module-output" name="Project2" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/commons/commons-csv/1.5/commons-csv-1.5.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

@@ -18,7 +18,7 @@ public class SpatialJoin {
     // To avoid losing 15 points we need to assign keys to each point
     // Splitting 10,000 x 10,000 into cells of 1000 x 1000 seems reasonable
     private static final int COORD_RANGE = 10_000;
-    private static final int NUM_PARTITIONS = 10;
+    private static final int NUM_PARTITIONS = 20;
     private static final int CELL_WIDTH = COORD_RANGE / NUM_PARTITIONS;
 
     public static class PointsMapper
@@ -33,7 +33,7 @@ public class SpatialJoin {
             Configuration conf = context.getConfiguration();
 
             // Either they all exist, or none do
-            if (conf.get("window.x1") != null) {
+            if (conf.get("window.wx1") != null) {
                 hasWindow = true;
                 wx1 = Integer.parseInt(conf.get("window.wx1"));
                 wy1 = Integer.parseInt(conf.get("window.wy1"));
@@ -86,7 +86,7 @@ public class SpatialJoin {
             Configuration conf = context.getConfiguration();
 
             // Either they all exist, or none do
-            if (conf.get("window.x1") != null) {
+            if (conf.get("window.wx1") != null) {
                 hasWindow = true;
                 wx1 = Integer.parseInt(conf.get("window.wx1"));
                 wy1 = Integer.parseInt(conf.get("window.wy1"));
@@ -153,7 +153,7 @@ public class SpatialJoin {
             for (Text val : values) {
 
                 String[] parts = val.toString().split(",");
-                // x and y are in the same locations
+                // x and y have the same indices in both mappers
                 int x = Integer.parseInt(parts[1]);
                 int y = Integer.parseInt(parts[2]);
 
@@ -198,7 +198,7 @@ public class SpatialJoin {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 3 && args.length != 7) {
+        if (args.length != 4 && args.length != 8) {
             System.err.println("Incorrect usage.");
             System.err.println("Without window: SpatialJoin <P_input> <R_input> <output>");
             System.err.println("With window: SpatialJoin <P_input> <R_input> <output> x1 y1 x2 y2");
@@ -207,22 +207,24 @@ public class SpatialJoin {
 
         Configuration conf = new Configuration();
 
-        if (args.length == 7) {
-            conf.set("window.x1", args[3]);
-            conf.set("window.y1", args[4]);
-            conf.set("window.x2", args[5]);
-            conf.set("window.y2", args[6]);
+        if (args.length == 8) {
+            conf.set("window.wx1", args[4]);
+            conf.set("window.wy1", args[5]);
+            conf.set("window.wx2", args[6]);
+            conf.set("window.wy2", args[7]);
         }
 
         Job job = Job.getInstance(conf, "Spatial Join");
         job.setJarByClass(SpatialJoin.class);
-        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class, PointsMapper.class);
-        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class, RectangleMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class, PointsMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[2]), TextInputFormat.class, RectangleMapper.class);
         job.setReducerClass(SpatialReducer.class);
+        job.setMapOutputKeyClass(IntWritable.class);
+        job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setNumReduceTasks(8);
-        FileOutputFormat.setOutputPath(job, new Path(args[2]));
+        FileOutputFormat.setOutputPath(job, new Path(args[3]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
